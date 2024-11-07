@@ -3,24 +3,36 @@
 
 void SpawnBall(Play::Point2f Position)
 {
-	const int ObjectId = Play::CreateGameObject(TYPE_BALL, Position, 1, "ball");
+	const int ObjectId = Play::CreateGameObject(TYPE_BALL, Position, 4, "ball");
 	GameObject& Ball = Play::GetGameObject(ObjectId);
-	Ball.velocity = normalize({ rand() / (float)RAND_MAX ,  rand() / (float)RAND_MAX }) * BALL_SPEED;
+	Ball.velocity = normalize({ rand() / (float)RAND_MAX,  rand() / (float)RAND_MAX }) * BALL_SPEED;
+	//Ball.acceleration = { 0.f, -1024.f };
 }
 
-
+void SetupScene()
+{
+	for (int x = 0; x < 32; x++)
+	{
+		for (int y = 1; y <= 8; y++)
+		{
+			Play::CreateGameObject(ObjectType::TYPE_BRICK, { x * (BRICK_DIMENSIONS[0] + 2) + 2 , DISPLAY_HEIGHT - (y * (BRICK_DIMENSIONS[1] + 2)) }, 8, "brick");
+		}
+	}
+}
 
 void StepFrame(float DeltaTime)
 {
+	// Balls
 	const std::vector<int> BallIds = Play::CollectGameObjectIDsByType(TYPE_BALL);
 	for (int i = 0; i < BallIds.size(); i++)
 	{
+		// Border collision
 		GameObject& Ball = Play::GetGameObject(BallIds[i]);
 		if (Ball.pos.x <= 0.f)
 		{
 			Ball.velocity.x = abs(Ball.velocity.x);
 		}
-		else if (Ball.pos.x >= DISPLAY_WIDTH)
+		else if (Ball.pos.x >= DISPLAY_WIDTH - 2.f * BALL_RADIUS)
 		{
 			Ball.velocity.x = -abs(Ball.velocity.x);
 		}
@@ -29,11 +41,45 @@ void StepFrame(float DeltaTime)
 		{
 			Ball.velocity.y = abs(Ball.velocity.y);
 		}
-		else if (Ball.pos.y >= DISPLAY_HEIGHT)
+		else if (Ball.pos.y >= DISPLAY_HEIGHT - 2.f * BALL_RADIUS)
 		{
 			Ball.velocity.y = -abs(Ball.velocity.y);
 		}
-		Play::UpdateGameObject(Ball, false, 0, true);
+
+		Play::UpdateGameObject(Ball, DeltaTime, false, 0);
 		Play::DrawObject(Ball);
+	}
+
+	// Bricks
+	const std::vector<int> BrickIds = Play::CollectGameObjectIDsByType(TYPE_BRICK);
+	for (int i = 0; i < BrickIds.size(); i++)
+	{
+		GameObject& Brick = Play::GetGameObject(BrickIds[i]);
+		Play::UpdateGameObject(Brick, DeltaTime, false, 0);
+		Play::DrawObject(Brick);
+	}
+
+	// Ball/brick collision
+	for (int i = 0; i < BallIds.size(); i++)
+	{
+		GameObject& Ball = Play::GetGameObject(BallIds[i]);
+		for (int j = 0; j < BrickIds.size(); j++)
+		{
+			GameObject& Brick = Play::GetGameObject(BrickIds[j]);
+			if (Play::IsColliding(Ball, Brick))
+			{
+				Play::DestroyGameObject(BrickIds[j]);
+
+				Point2D BallCenter = Ball.pos + Point2D(BALL_RADIUS, BALL_RADIUS);
+				Point2D BrickCenter = Brick.pos + Point2D(BRICK_DIMENSIONS[0] / 2, BRICK_DIMENSIONS[1] / 2);
+
+				// Reflect vertical velocity
+				Ball.velocity.y = -Ball.velocity.y;
+				if (BrickCenter.y - BallCenter.y <= BRICK_DIMENSIONS[1])
+				{
+
+				}
+			}
+		}
 	}
 }

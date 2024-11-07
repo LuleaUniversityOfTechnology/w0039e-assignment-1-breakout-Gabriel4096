@@ -2239,7 +2239,7 @@ namespace Play
 	//! @param bWrap Should the object wrap around the edge of the screen to the other side? Defaults to no.
 	//! @param wrapBorderSize If the object is wrapping, then how far off the edge of the screen should the object get before it wraps? Defaults to 0 pixels.
 	//! @param allowMultipleUpdatesPerFrame If set to true, then this allows for the object to be updated again if it already has this frame.
-	void UpdateGameObject(GameObject& object, bool bWrap = false, int wrapBorderSize = 0, bool allowMultipleUpdatesPerFrame = false);
+	void UpdateGameObject(GameObject& object, float DeltaTime, bool bWrap = false, int wrapBorderSize = 0, bool allowMultipleUpdatesPerFrame = false);
 	//! @brief Deletes the GameObject with the corresponding Id.
 	//! @param id The unique id of the GameObject you wish to delete.
 	void DestroyGameObject(int id);
@@ -5063,7 +5063,7 @@ namespace Play
 		return vec; // Returning a copy of the vector
 	}
 
-	void UpdateGameObject(GameObject& obj, bool bWrap, int wrapBorderSize, bool allowMultipleUpdatesPerFrame)
+	void UpdateGameObject(GameObject& obj, float DeltaTime, bool bWrap, int wrapBorderSize, bool allowMultipleUpdatesPerFrame)
 	{
 		if (obj.type == -1) return; // Don't update noObject
 
@@ -5075,10 +5075,17 @@ namespace Play
 		obj.oldPos = obj.pos;
 		obj.oldRot = obj.rotation;
 
-		// Move the object according to a very simple physical model
-		obj.velocity += obj.acceleration;
-		obj.pos += obj.velocity;
-		obj.rotation += obj.rotSpeed;
+		// Move the object according to a sufficient physical model
+#if 1
+		obj.velocity += 0.5f * DeltaTime * obj.acceleration;
+		obj.pos += DeltaTime * obj.velocity;
+		obj.velocity += 0.5f * DeltaTime * obj.acceleration; 
+		obj.rotation += DeltaTime * obj.rotSpeed;
+#else
+		obj.velocity += DeltaTime * obj.acceleration;
+		obj.pos += DeltaTime * obj.velocity;
+		obj.rotation += DeltaTime * obj.rotSpeed;
+#endif
 
 		// Handle the animation frame update
 		obj.framePos += obj.animSpeed;
@@ -5281,7 +5288,7 @@ namespace Play
 	}
 }
 #endif
-#endif // PLAY_IMPLEMENTATION
+#endif PLAY_IMPLEMENTATION
 
 #ifdef PLAY_IMPLEMENTATION
 #undef PLAY_IMPLEMENTATION // try to prevent multiple implementations
