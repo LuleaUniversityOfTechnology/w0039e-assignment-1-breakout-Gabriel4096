@@ -3,7 +3,7 @@
 
 void SpawnBall(Play::Point2f Position)
 {
-	const int ObjectId = Play::CreateGameObject(TYPE_BALL, Position, 256, "Ball");
+	const int ObjectId = Play::CreateGameObject(TYPE_BALL, Position, 1, "ball");
 	GameObject& Ball = Play::GetGameObject(ObjectId);
 	Ball.velocity = normalize({ rand() / (float)RAND_MAX ,  rand() / (float)RAND_MAX }) * BALL_SPEED;
 }
@@ -16,13 +16,22 @@ void StepFrame(float DeltaTime)
 	for (int i = 0; i < BallIds.size(); i++)
 	{
 		GameObject& Ball = Play::GetGameObject(BallIds[i]);
-		if (Ball.pos.x <= 0.f || Ball.pos.x >= DISPLAY_WIDTH)
+		if (Ball.pos.x <= 0.f)
 		{
-			Ball.velocity.x = -Ball.velocity.x;
+			Ball.velocity.x = abs(Ball.velocity.x);
 		}
-		if (Ball.pos.y <= 0.f || Ball.pos.y >= DISPLAY_HEIGHT)
+		else if (Ball.pos.x >= DISPLAY_WIDTH)
 		{
-			Ball.velocity.y = -Ball.velocity.y;
+			Ball.velocity.x = -abs(Ball.velocity.x);
+		}
+
+		if (Ball.pos.y <= 0.f)
+		{
+			Ball.velocity.y = abs(Ball.velocity.y);
+		}
+		else if (Ball.pos.y >= DISPLAY_HEIGHT)
+		{
+			Ball.velocity.y = -abs(Ball.velocity.y);
 		}
 		Play::UpdateGameObject(Ball, false, 0, true);
 		Play::DrawObject(Ball);
