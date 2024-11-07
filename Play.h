@@ -921,8 +921,10 @@ namespace Play
 // Notes:		Uses a 32-bit ARGB display buffer
 //********************************************************************************************************************************
 
+#include "Constants.h"
+
 // The target frame rate
-constexpr int FRAMES_PER_SECOND = 60;
+constexpr int FRAMES_PER_SECOND = FPS;
 
 // Some defines to hide the complexity of arguments 
 #define PLAY_IGNORE_COMMAND_LINE	int, char*[]
