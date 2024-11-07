@@ -1,6 +1,6 @@
 #pragma once
 
-const int FPS = 60;
+const int FRAMES_PER_SECONDS = 120;
 
 const int DISPLAY_WIDTH = 578;
 const int DISPLAY_HEIGHT = 434;
@@ -18,3 +18,13 @@ enum ObjectType
 	TYPE_BALL,
 	TYPE_BRICK
 };
+
+inline float Max(float a, float b)
+{
+	return a > b ? a : b;
+}
+
+inline float Min(float a, float b)
+{
+	return a < b ? a : b;
+}

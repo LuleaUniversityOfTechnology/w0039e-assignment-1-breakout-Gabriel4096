@@ -924,7 +924,7 @@ namespace Play
 #include "Constants.h"
 
 // The target frame rate
-constexpr int FRAMES_PER_SECOND = FPS;
+constexpr float FRAME_TIME_MS = 1000.f / FRAMES_PER_SECONDS;
 
 // Some defines to hide the complexity of arguments 
 #define PLAY_IGNORE_COMMAND_LINE	int, char*[]
@@ -2669,7 +2669,7 @@ namespace Play::Window
 				QueryPerformanceCounter(&now);
 				elapsedTime = (now.QuadPart - lastDrawTime.QuadPart) * 1000.0 / frequency.QuadPart;
 
-			} while (elapsedTime < 1000.0f / FRAMES_PER_SECOND);
+			} while (elapsedTime < FRAME_TIME_MS);
 
 			// Call the main game update function (only while we have the input focus in release mode)
 #ifndef _DEBUG

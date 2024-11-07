@@ -5,17 +5,17 @@ void SpawnBall(Play::Point2f Position)
 {
 	const int ObjectId = Play::CreateGameObject(TYPE_BALL, Position, 4, "ball");
 	GameObject& Ball = Play::GetGameObject(ObjectId);
-	Ball.velocity = normalize({ rand() / (float)RAND_MAX,  rand() / (float)RAND_MAX }) * BALL_SPEED;
-	//Ball.acceleration = { 0.f, -1024.f };
+	Ball.velocity = normalize({ (rand() * 2.f - RAND_MAX) / RAND_MAX,  (rand() * 2.f - RAND_MAX) / RAND_MAX }) * BALL_SPEED;
+	Ball.acceleration = { 0.f, -GRAVITY };
 }
 
 void SetupScene()
 {
 	for (int x = 0; x < 32; x++)
 	{
-		for (int y = 1; y <= 8; y++)
+		for (int y = 1; y <= 32; y++)
 		{
-			Play::CreateGameObject(ObjectType::TYPE_BRICK, { x * (BRICK_DIMENSIONS[0] + 2) + 2 , DISPLAY_HEIGHT - (y * (BRICK_DIMENSIONS[1] + 2)) }, 8, "brick");
+			Play::CreateGameObject(ObjectType::TYPE_BRICK, { x * (BRICK_DIMENSIONS[0] + 2) + 2 , DISPLAY_HEIGHT - (y * (BRICK_DIMENSIONS[1] + 2)) }, 7, "brick");
 		}
 	}
 }
@@ -66,18 +66,25 @@ void StepFrame(float DeltaTime)
 		for (int j = 0; j < BrickIds.size(); j++)
 		{
 			GameObject& Brick = Play::GetGameObject(BrickIds[j]);
-			if (Play::IsColliding(Ball, Brick))
+			if (Play::IsColliding(Ball, Brick))		// THIS FUNCTION DOES NOT WORK CORRECTLY, IT'S MEASURING A RADIUS FOR A BLOCK
 			{
 				Play::DestroyGameObject(BrickIds[j]);
 
-				Point2D BallCenter = Ball.pos + Point2D(BALL_RADIUS, BALL_RADIUS);
-				Point2D BrickCenter = Brick.pos + Point2D(BRICK_DIMENSIONS[0] / 2, BRICK_DIMENSIONS[1] / 2);
+				Point2D BallCenter = Ball.pos + normalize(Vector2f(1.f, 1.f)) * BALL_RADIUS;
+				//Point2D BrickCenter = Brick.pos + Point2D(BRICK_DIMENSIONS[0] / 2, BRICK_DIMENSIONS[1] / 2);
 
-				// Reflect vertical velocity
-				Ball.velocity.y = -Ball.velocity.y;
-				if (BrickCenter.y - BallCenter.y <= BRICK_DIMENSIONS[1])
+				const float EdgePointX = Max(Brick.pos.x, Min(BallCenter.x, Brick.pos.x + BRICK_DIMENSIONS[0]));
+				const float EdgePointY = Max(Brick.pos.y, Min(BallCenter.y, Brick.pos.y + BRICK_DIMENSIONS[1]));
+
+				// Horizontal bounce
+				if (abs(BallCenter.x - EdgePointX) > abs(BallCenter.y - EdgePointY) * BRICK_DIMENSIONS[0] / BRICK_DIMENSIONS[1])
 				{
-
+					Ball.velocity.x = -Ball.velocity.x;
+				}
+				// Vertical bounce
+				else
+				{
+					Ball.velocity.y = -Ball.velocity.y;
 				}
 			}
 		}
