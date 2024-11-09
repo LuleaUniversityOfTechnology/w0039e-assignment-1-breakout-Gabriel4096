@@ -5,7 +5,7 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 {
 	Play::CreateManager(DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_SCALE);
 	SpawnBall({ DISPLAY_WIDTH / 2.f, DISPLAY_HEIGHT / 8.f });
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 32; i++)
 	{
 		SpawnBall({ rand() % DISPLAY_WIDTH, rand() % DISPLAY_HEIGHT});
 	}

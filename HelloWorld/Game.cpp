@@ -5,15 +5,15 @@ void SpawnBall(Play::Point2f Position)
 {
 	const int ObjectId = Play::CreateGameObject(TYPE_BALL, Position, 4, "ball");
 	GameObject& Ball = Play::GetGameObject(ObjectId);
-	Ball.velocity = normalize({ (rand() * 2.f - RAND_MAX) / RAND_MAX,  (rand() * 2.f - RAND_MAX) / RAND_MAX }) * BALL_SPEED;
-	Ball.acceleration = { 0.f, -GRAVITY };
+	//Ball.velocity = normalize({ (rand() * 2.f - RAND_MAX) / RAND_MAX,  (rand() * 2.f - RAND_MAX) / RAND_MAX }) * BALL_SPEED;
+	//Ball.acceleration = { 0.f, -GRAVITY };
 }
 
 void SetupScene()
 {
 	for (int x = 0; x < 32; x++)
 	{
-		for (int y = 1; y <= 32; y++)
+		for (int y = 1; y <= 16; y++)
 		{
 			Play::CreateGameObject(ObjectType::TYPE_BRICK, { x * (BRICK_DIMENSIONS[0] + 2) + 2 , DISPLAY_HEIGHT - (y * (BRICK_DIMENSIONS[1] + 2)) }, 7, "brick");
 		}
@@ -26,8 +26,19 @@ void StepFrame(float DeltaTime)
 	const std::vector<int> BallIds = Play::CollectGameObjectIDsByType(TYPE_BALL);
 	for (int i = 0; i < BallIds.size(); i++)
 	{
-		// Border collision
 		GameObject& Ball = Play::GetGameObject(BallIds[i]);
+		Ball.acceleration = { 0.f, 0.f };
+		for (int j = 0; j < BallIds.size(); j++)
+		{
+			if (j == i)
+			{
+				continue;
+			}
+			GameObject& Other = Play::GetGameObject(BallIds[j]);
+			float Distance = Max(8.f, (Other.pos - Ball.pos).Length());
+			Ball.acceleration += GRAVITY / (Distance * Distance) * normalize(Other.pos - Ball.pos);
+		}
+		// Border collision
 		if (Ball.pos.x <= 0.f)
 		{
 			Ball.velocity.x = abs(Ball.velocity.x);
@@ -45,6 +56,7 @@ void StepFrame(float DeltaTime)
 		{
 			Ball.velocity.y = -abs(Ball.velocity.y);
 		}
+
 
 		Play::UpdateGameObject(Ball, DeltaTime, false, 0);
 		Play::DrawObject(Ball);

@@ -11,7 +11,7 @@ const float BALL_SPEED = 256.f;
 
 const int BRICK_DIMENSIONS[] = {16.f, 10.f};
 
-const float GRAVITY = 1024.f;
+const float GRAVITY = 16384.f;
 
 enum ObjectType
 {
