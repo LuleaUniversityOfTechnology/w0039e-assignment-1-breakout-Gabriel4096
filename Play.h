@@ -26,6 +26,8 @@
 
 #define PLAY_VERSION	"2.0.24.02.09"
 
+#include "Constants.h"
+
 #include <cstdint>
 #include <cstdlib>
 #include <cmath> 
@@ -920,8 +922,6 @@ namespace Play
 // Platform:	Windows
 // Notes:		Uses a 32-bit ARGB display buffer
 //********************************************************************************************************************************
-
-#include "Constants.h"
 
 // The target frame rate
 constexpr float FRAME_TIME_MS = 1000.f / FRAMES_PER_SECONDS;

@@ -10,6 +10,7 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 		SpawnBall({ rand() % DISPLAY_WIDTH, rand() % DISPLAY_HEIGHT});
 	}
 	SetupScene();
+	Play::CentreAllSpriteOrigins();
 }
 
 // Called by PlayBuffer every frame (60 times a second!)
