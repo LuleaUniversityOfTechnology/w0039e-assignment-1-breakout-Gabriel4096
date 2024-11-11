@@ -5077,15 +5077,13 @@ namespace Play
 
 		// Move the object according to a sufficient physical model
 #if 1
-		obj.velocity += 0.5f * DeltaTime * obj.acceleration;
-		obj.pos += DeltaTime * obj.velocity;
-		obj.velocity += 0.5f * DeltaTime * obj.acceleration; 
-		obj.rotation += DeltaTime * obj.rotSpeed;
+		obj.pos += DeltaTime * (obj.velocity + 0.5f * DeltaTime * obj.acceleration);
+		obj.velocity += DeltaTime * obj.acceleration;
 #else
 		obj.velocity += DeltaTime * obj.acceleration;
 		obj.pos += DeltaTime * obj.velocity;
-		obj.rotation += DeltaTime * obj.rotSpeed;
 #endif
+		obj.rotation += DeltaTime * obj.rotSpeed;
 
 		// Handle the animation frame update
 		obj.framePos += obj.animSpeed;

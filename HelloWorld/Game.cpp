@@ -1,12 +1,14 @@
 #define PLAY_IMPLEMENTATION
 #include "Game.h"
 
+Paddle paddle;
+
 void SpawnBall(Play::Point2f Position)
 {
 	const int ObjectId = Play::CreateGameObject(TYPE_BALL, Position, 0.5f * Play::GetSpriteWidth(BALL_SPRITE), BALL_SPRITE);
 	GameObject& Ball = Play::GetGameObject(ObjectId);
 	Ball.velocity = normalize(Vector2D((rand() * 2.f - RAND_MAX) / RAND_MAX,  (rand() * 2.f - RAND_MAX) / RAND_MAX)) * BALL_SPEED;
-	//Ball.acceleration = { 0.f, -GRAVITY };
+	//Ball.acceleration = { 0.f, -GRAVITY_FORCE };
 }
 
 void SetupScene()
@@ -102,8 +104,13 @@ void StepFrame(float DeltaTime)
 						Ball.velocity.y = -abs(Ball.velocity.y);
 					}
 				}
+
 				Play::DestroyGameObject(BrickIds[j]);
 			}
 		}
 	}
+
+	// Paddle
+	UpdatePaddle(paddle, DeltaTime);
+	DrawPaddle(paddle);
 }
