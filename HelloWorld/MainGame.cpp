@@ -5,7 +5,7 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 {
 	Play::CreateManager(DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_SCALE);
 	SpawnBall({ DISPLAY_WIDTH / 2.f, 60.f});
-	for (int i = 0; i < 0; i++)
+	for (int i = 0; i < 64; i++)
 	{
 		SpawnBall({ rand() % DISPLAY_WIDTH, rand() % DISPLAY_HEIGHT});
 	}
@@ -13,7 +13,7 @@ void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 	Play::CentreAllSpriteOrigins();
 }
 
-// Called by PlayBuffer every frame (60 times a second!)
+// Called by PlayBuffer every frame
 bool MainGameUpdate(float ElapsedTime)
 {
 	Play::ClearDrawingBuffer(Play::Colour(0, 0, 25));

@@ -3,6 +3,7 @@
 #include "Game.h"
 
 // Consts for the paddle
+
 const float PADDLE_SPEED = 256.f;
 
 const Play::Vector2f PADDLE_RADII = { 48.f, 6.f };

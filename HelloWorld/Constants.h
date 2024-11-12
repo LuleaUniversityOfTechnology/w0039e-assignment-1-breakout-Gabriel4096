@@ -3,10 +3,10 @@
 const int FRAMES_PER_SECONDS = 120;
 const int DISPLAY_WIDTH = 578;
 const int DISPLAY_HEIGHT = 434;
-const float DISPLAY_SCALE = 3;
+const float DISPLAY_SCALE = 2;
 
 const char BALL_SPRITE[] = "ball";
-const float BALL_SPEED = 384.f;
+const float BALL_SPEED = 512.f;
 
 const char BRICK_SPRITE[] = "brick";
 const float BRICK_SPACE = 2.f;
@@ -31,5 +31,5 @@ inline float Min(float a, float b)
 
 inline char Sign(float x)
 {
-	return x > 0.f ? 1 : (x < 0.f ? -1 : 0);
+	return x > 0 ? 1 : (x < 0 ? -1 : 0);
 }

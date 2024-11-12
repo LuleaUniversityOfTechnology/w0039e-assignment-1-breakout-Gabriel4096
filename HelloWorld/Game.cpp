@@ -8,9 +8,8 @@ void SpawnBall(Play::Point2f Position)
 {
 	const int ObjectId = Play::CreateGameObject(TYPE_BALL, Position, 0.5f * Play::GetSpriteWidth(BALL_SPRITE), BALL_SPRITE);
 	GameObject& Ball = Play::GetGameObject(ObjectId);
-	Ball.velocity = normalize({ 1, -1 }) * BALL_SPEED;
-	//Ball.velocity = normalize(Vector2D((rand() * 2.f - RAND_MAX) / RAND_MAX,  (rand() * 2.f - RAND_MAX) / RAND_MAX)) * BALL_SPEED;
-	//Ball.acceleration = { 0.f, -GRAVITY_FORCE };
+	Ball.velocity = normalize({ 1, 1 }) * BALL_SPEED;
+	Ball.velocity = normalize(Vector2D((rand() * 2.f - RAND_MAX) / RAND_MAX,  (rand() * 2.f - RAND_MAX) / RAND_MAX)) * BALL_SPEED;
 }
 
 void SetupScene()
@@ -36,8 +35,9 @@ void StepFrame(float DeltaTime)
 	std::vector<int> BallIds = Play::CollectGameObjectIDsByType(TYPE_BALL);
 	for (int i = 0; i < BallIds.size(); i++)
 	{
-		// Border collision
 		GameObject& Ball = Play::GetGameObject(BallIds[i]);
+
+		// Border collision
 		if (Ball.pos.x < BALL_RADIUS)
 		{
 			Ball.velocity.x = abs(Ball.velocity.x);
@@ -46,11 +46,10 @@ void StepFrame(float DeltaTime)
 		{
 			Ball.velocity.x = -abs(Ball.velocity.x);
 		}
-
 		if (Ball.pos.y < -BALL_RADIUS)
 		{
-			Ball.velocity.y = abs(Ball.velocity.y);
-			Play::DestroyGameObject(BallIds[i]);
+			//Ball.velocity.y = abs(Ball.velocity.y);
+			Play::DestroyGameObject(BallIds[i]);		// Destory the ball at the bottom of the screen
 			break;
 		}
 		else if (Ball.pos.y > DISPLAY_HEIGHT - BALL_RADIUS)
@@ -58,7 +57,7 @@ void StepFrame(float DeltaTime)
 			Ball.velocity.y = -abs(Ball.velocity.y);
 		}
 
-		Play::UpdateGameObject(Ball, DeltaTime, false, 0);
+		Play::UpdateGameObject(Ball, DeltaTime);
 		Play::DrawObject(Ball);
 	}
 
@@ -67,7 +66,7 @@ void StepFrame(float DeltaTime)
 	for (int i = 0; i < BrickIds.size(); i++)
 	{
 		GameObject& Brick = Play::GetGameObject(BrickIds[i]);
-		Play::UpdateGameObject(Brick, DeltaTime, false, 0);
+		Play::UpdateGameObject(Brick, DeltaTime);
 		Play::DrawObject(Brick);
 	}
 
@@ -99,6 +98,8 @@ void StepFrame(float DeltaTime)
 		{
 			bPaddleCollision = true;
 			Ball.velocity = RectangleBounce(Ball, paddle.Position, PADDLE_RADII);
+			Ball.velocity.x = BALL_SPEED * 0.5f * (Ball.pos.x - paddle.Position.x) / PADDLE_RADII.x;
+			Ball.velocity.x += 0.5f * (paddle.Velocity.x - Ball.velocity.x);
 		}
 	}
 	paddle.Colour = bPaddleCollision ? PADDLE_COLLISION_COLOUR : PADDLE_COLOUR;
@@ -110,25 +111,20 @@ void StepFrame(float DeltaTime)
 	DrawPaddle(paddle);
 }
 
-// Calculates a new velocity from a bounce with a rectangle.
-// @param Object: The game object that is bouncing
-// @param RectanglePos: The centre of the rectangle
-// @param RectangleRadii: A vector containing the aspect ratio of the rectangle
-// @return The new velocity of the game object after the bounce
 Play::Vector2f RectangleBounce(const Play::GameObject& Object, Play::Vector2D RectanglePos, Play::Vector2f RectangleRadii)
 {
 	Play::Vector2f NewVelocity = Object.velocity;
 
 	// Horizontal bounce
-	if (abs(Object.pos.x - RectanglePos.x) > abs(Object.pos.y - RectanglePos.y) * RectangleRadii.x / RectangleRadii.y)
+	if (abs(Object.oldPos.x - RectanglePos.x) > abs(Object.oldPos.y - RectanglePos.y) * RectangleRadii.x / RectangleRadii.y)
 	{
 		// Right collision
-		if (Object.pos.x > RectanglePos.x)
+		if (Object.oldPos.x > RectanglePos.x)
 		{
 			NewVelocity.x = abs(NewVelocity.x);
 		}
 		// Left collision
-		else if (Object.pos.x < RectanglePos.x)
+		else if (Object.oldPos.x < RectanglePos.x)
 		{
 			NewVelocity.x = -abs(NewVelocity.x);
 		}
@@ -137,12 +133,12 @@ Play::Vector2f RectangleBounce(const Play::GameObject& Object, Play::Vector2D Re
 	else
 	{
 		// Up collision
-		if (Object.pos.y > RectanglePos.y)
+		if (Object.oldPos.y > RectanglePos.y)
 		{
 			NewVelocity.y = abs(NewVelocity.y);
 		}
 		// Down collision
-		else if (Object.pos.y < RectanglePos.y)
+		else if (Object.oldPos.y < RectanglePos.y)
 		{
 			NewVelocity.y = -abs(NewVelocity.y);
 		}

@@ -924,7 +924,7 @@ namespace Play
 //********************************************************************************************************************************
 
 // The target frame rate
-constexpr float FRAME_TIME_MS = 1000.f / FRAMES_PER_SECONDS;
+constexpr double FRAME_TIME_MS = 1000.f / FRAMES_PER_SECONDS;
 
 // Some defines to hide the complexity of arguments 
 #define PLAY_IGNORE_COMMAND_LINE	int, char*[]
@@ -5076,7 +5076,7 @@ namespace Play
 		obj.oldRot = obj.rotation;
 
 		// Move the object according to a sufficient physical model
-#if 1
+#if 0
 		obj.pos += DeltaTime * (obj.velocity + 0.5f * DeltaTime * obj.acceleration);
 		obj.velocity += DeltaTime * obj.acceleration;
 #else
