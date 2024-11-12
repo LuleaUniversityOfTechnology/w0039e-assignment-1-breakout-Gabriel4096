@@ -2,6 +2,7 @@
 
 void UpdatePaddle(Paddle& paddle, float DeltaTime)
 {
+	// Movement
 	paddle.Velocity.x = 0.f;
 	if (Play::KeyDown(Play::KEY_RIGHT))
 	{
@@ -11,13 +12,16 @@ void UpdatePaddle(Paddle& paddle, float DeltaTime)
 	{
 		paddle.Velocity.x -= PADDLE_SPEED;
 	}
-	
 	paddle.Position += paddle.Velocity * DeltaTime;
 
 	// Clamp to screen
-	paddle.Position.x = Max(PADDLE_RADII.x, Min(paddle.Position.x, DISPLAY_WIDTH - PADDLE_RADII.x));
+	if (paddle.Position.x < PADDLE_RADII.x || paddle.Position.x > DISPLAY_WIDTH - PADDLE_RADII.x)
+	{
+		paddle.Velocity.x = 0.f;
+		paddle.Position.x = Max(PADDLE_RADII.x, Min(paddle.Position.x, DISPLAY_WIDTH - PADDLE_RADII.x));
+	}
 
-	// Calculate corners
+	// Recalculate corners
 	paddle.BottomLeft = paddle.Position - PADDLE_RADII;
 	paddle.TopRight = paddle.Position + PADDLE_RADII;
 }
