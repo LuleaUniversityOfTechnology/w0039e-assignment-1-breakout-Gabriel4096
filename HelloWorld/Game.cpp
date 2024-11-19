@@ -1,10 +1,11 @@
 #define PLAY_IMPLEMENTATION
 #include "Game.h"
 #include "Paddle.h"
+#include <fstream>
 
 Paddle paddle;
-int HighscoresCount = 5;
-unsigned int* HighScores = new unsigned int[HighscoresCount] { 0 };
+int HighscoresCount;
+unsigned int* HighScores = new unsigned int[HighscoresCount] {};
 unsigned int Score = 0;
 
 void SpawnBall(Play::Point2f Position)
@@ -53,27 +54,23 @@ void StepFrame(float DeltaTime)
 		GameObject& Ball = Play::GetGameObject(BallIds[i]);
 
 		// Border collision
-		if (Ball.pos.x < BALL_RADIUS && Ball.velocity.x)
+		if (Ball.pos.x < BALL_RADIUS && Ball.velocity.x < 0.f || Ball.pos.x > DISPLAY_WIDTH - BALL_RADIUS && Ball.velocity.x > 0.f)
 		{
-			Ball.velocity.x = abs(Ball.velocity.x);
-		}
-		else if (Ball.pos.x > DISPLAY_WIDTH - BALL_RADIUS)
-		{
-			Ball.velocity.x = -abs(Ball.velocity.x);
+			Ball.velocity.x = -Ball.velocity.x;
 		}
 		if (Ball.pos.y < -BALL_RADIUS)
 		{
+			// Restart
 			Play::DestroyAllGameObjects();		// Destory all objects when the ball is down off-screen
 			InsertHighscore(Score);
-			//HighScores[0] = Score;
 			Score = 0;
 			SpawnBall({ paddle.Position.x, 40.f });
 			SetupScene();
 			break;
 		}
-		else if (Ball.pos.y > DISPLAY_HEIGHT - BALL_RADIUS)
+		else if (Ball.pos.y > DISPLAY_HEIGHT - BALL_RADIUS && Ball.velocity.y > 0.f)
 		{
-			Ball.velocity.y = -abs(Ball.velocity.y);
+			Ball.velocity.y = -Ball.velocity.y;
 		}
 		Play::UpdateGameObject(Ball, DeltaTime);
 		Play::DrawObject(Ball);
@@ -133,6 +130,10 @@ void InsertHighscore(unsigned int score)
 			break;
 		}
 	}
+	if (InsertIndex == HighscoresCount)		// Score didn't make it to the list
+	{
+		return;
+	}
 	for (int i = HighscoresCount - 2; i >= InsertIndex; i--)		// Move down lower scores
 	{
 		HighScores[i + 1] = HighScores[i];
@@ -140,9 +141,40 @@ void InsertHighscore(unsigned int score)
 	HighScores[InsertIndex] = score;
 }
 
-void EndGame()
+void LoadHighscores()
 {
-	delete[] HighScores;	// MAY CRASH!!
+	string Line;
+	fstream File("scores", ios::in);
+	if (File.is_open())
+	{
+		for (HighscoresCount = 0; getline(File, Line); HighscoresCount++);		// Count number of highscores
+		File.clear();		// Clear error states from reaching the last line
+		File.seekg(0);
+		HighScores = new unsigned int[HighscoresCount] {};
+		for (int i = 0; getline(File, Line); i++)
+		{
+			HighScores[i] = stoul(Line);		// Crashes if empty line!
+		}
+	}
+	else
+	{
+		HighscoresCount = 5;
+		HighScores = new unsigned int[HighscoresCount] {};
+	}
+}
+
+void SaveHighscores()
+{
+	fstream File("scores", ios::out);
+	if (File.is_open())
+	{
+		for (int i = 0; i < HighscoresCount; i++)
+		{
+			File << HighScores[i] << "\n";
+		}
+	}
+	File.close();
+	delete[] HighScores;
 }
 
 Play::Vector2f RectangleBounce(const Play::GameObject& Object, Play::Vector2D RectanglePos, Play::Vector2f RectangleRadii)

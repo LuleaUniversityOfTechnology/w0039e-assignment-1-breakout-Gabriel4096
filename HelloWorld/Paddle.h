@@ -30,15 +30,15 @@ struct Paddle
 };
 
 // Updates the movement of a paddle from keyboard input.
-// @param paddle: the paddle object
-// @param DeltaTime: time since last frame
+// @param paddle: the paddle object.
+// @param DeltaTime: time since last frame.
 void UpdatePaddle(Paddle& paddle, float DeltaTime);
 
 // Renders a paddle.
-// @param paddle: the paddle object
+// @param paddle: the paddle object.
 void DrawPaddle(const Paddle& paddle);
 
 // Checks for overlap between a paddle and a game object.
-// @param paddle: the paddle object
-// @param object: the game object
+// @param paddle: the paddle object.
+// @param object: the game object.
 bool IsColliding(const Paddle& paddle, const Play::GameObject& object);
