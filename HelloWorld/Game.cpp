@@ -3,6 +3,9 @@
 #include "Paddle.h"
 
 Paddle paddle;
+int HighscoresCount = 5;
+unsigned int* HighScores = new unsigned int[HighscoresCount] { 0 };
+unsigned int Score = 0;
 
 void SpawnBall(Play::Point2f Position)
 {
@@ -50,7 +53,7 @@ void StepFrame(float DeltaTime)
 		GameObject& Ball = Play::GetGameObject(BallIds[i]);
 
 		// Border collision
-		if (Ball.pos.x < BALL_RADIUS)
+		if (Ball.pos.x < BALL_RADIUS && Ball.velocity.x)
 		{
 			Ball.velocity.x = abs(Ball.velocity.x);
 		}
@@ -60,7 +63,12 @@ void StepFrame(float DeltaTime)
 		}
 		if (Ball.pos.y < -BALL_RADIUS)
 		{
-			Play::DestroyGameObject(BallIds[i]);		// Destory the ball when it's down off-screen
+			Play::DestroyAllGameObjects();		// Destory all objects when the ball is down off-screen
+			InsertHighscore(Score);
+			//HighScores[0] = Score;
+			Score = 0;
+			SpawnBall({ paddle.Position.x, 40.f });
+			SetupScene();
 			break;
 		}
 		else if (Ball.pos.y > DISPLAY_HEIGHT - BALL_RADIUS)
@@ -78,6 +86,7 @@ void StepFrame(float DeltaTime)
 			{
 				Ball.velocity = RectangleBounce(Ball, Brick.pos, BRICK_RADII);
 				Play::DestroyGameObject(BrickIds[j]);
+				Score++;
 			}
 		}
 
@@ -102,6 +111,38 @@ void StepFrame(float DeltaTime)
 		paddle.Colour = { 75, 0, 75 };
 	}
 	DrawPaddle(paddle);
+
+	// Highscores
+	for (int i = 0; i < HighscoresCount; i++)
+	{
+		std::string Text = "N" + std::to_string(i + 1) + ": " + std::to_string(HighScores[i]);
+		Play::DrawDebugText({ DISPLAY_WIDTH * 0.9375f, DISPLAY_HEIGHT * (0.05f * (HighscoresCount - i)) }, Text.c_str(), Play::Colour(100, 100, 0));
+	}
+
+	// Current Highscore
+	Play::DrawDebugText({ DISPLAY_WIDTH * 0.0625f, DISPLAY_HEIGHT * 0.09375f }, std::to_string(Score).c_str(), Play::Colour(100, 100, 0));
+}
+
+void InsertHighscore(unsigned int score)
+{
+	int InsertIndex = 0;
+	for (; InsertIndex < HighscoresCount; InsertIndex++)		// Check where to insert the new score
+	{
+		if (score >= HighScores[InsertIndex])
+		{
+			break;
+		}
+	}
+	for (int i = HighscoresCount - 2; i >= InsertIndex; i--)		// Move down lower scores
+	{
+		HighScores[i + 1] = HighScores[i];
+	}
+	HighScores[InsertIndex] = score;
+}
+
+void EndGame()
+{
+	delete[] HighScores;	// MAY CRASH!!
 }
 
 Play::Vector2f RectangleBounce(const Play::GameObject& Object, Play::Vector2D RectanglePos, Play::Vector2f RectangleRadii)

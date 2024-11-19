@@ -1,6 +1,6 @@
 #pragma once
 
-const int FRAMES_PER_SECONDS = 60;
+const int FRAMES_PER_SECONDS = 120;
 const int DISPLAY_WIDTH = 578;
 const int DISPLAY_HEIGHT = 434;
 const float DISPLAY_SCALE = 4;

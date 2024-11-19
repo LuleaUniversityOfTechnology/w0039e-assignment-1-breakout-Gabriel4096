@@ -15,6 +15,13 @@ void SetupScene();
 // @param DeltaTime: time since last frame
 void StepFrame(float DeltaTime);
 
+// Tries to insert a highscore in the right spot if possible.
+// @param score: the current score to insert
+void InsertHighscore(unsigned int score);
+
+// Deletes dynamic memory.
+void EndGame();
+
 // Calculates a new velocity from a bounce with a rectangle.
 // @param Object: the game object that is bouncing
 // @param RectanglePos: the centre of the rectangle

@@ -4,7 +4,7 @@
 void MainGameEntry(PLAY_IGNORE_COMMAND_LINE)
 {
 	Play::CreateManager(DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_SCALE);
-	SpawnBall({ 0.5f * DISPLAY_WIDTH, 60.f});
+	SpawnBall({ 0.5f * DISPLAY_WIDTH, 40.f});
 	SetupScene();
 	Play::CentreAllSpriteOrigins();
 }
@@ -21,6 +21,7 @@ bool MainGameUpdate(float DeltaTime)
 // Gets called once when the player quits the game 
 int MainGameExit()
 {
+	EndGame();
 	Play::DestroyManager();
 	return PLAY_OK;
 }
