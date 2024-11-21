@@ -17,12 +17,14 @@ enum ObjectType : char
 	TYPE_BRICK
 };
 
-inline float Max(float a, float b)
+template<typename T>
+inline T Max(T a, T b)
 {
 	return a > b ? a : b;
 }
 
-inline float Min(float a, float b)
+template<typename T>
+inline T Min(T a, T b)
 {
 	return a < b ? a : b;
 }

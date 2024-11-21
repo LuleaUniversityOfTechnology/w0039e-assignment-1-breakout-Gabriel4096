@@ -7,8 +7,9 @@ Paddle paddle;
 int HighscoresCount;
 unsigned int* HighScores;
 unsigned int Score = 0;
-unsigned char ScoreIncrement = 1;
-bool bHitBrick = false;
+unsigned int ScoreIncrement = 1;
+unsigned int HitBricks = 0;		// Number of bricks hit during one paddle bounce.
+bool bPaddleCollision = false;
 
 void SpawnBall(Play::Point2f Position)
 {
@@ -46,7 +47,6 @@ void StepFrame(float DeltaTime)
 	}
 
 	// Paddle (update)
-	bool bPaddleCollision = false;
 	UpdatePaddle(paddle, DeltaTime);
 
 	// Balls
@@ -66,7 +66,9 @@ void StepFrame(float DeltaTime)
 			Play::DestroyAllGameObjects();		// Destory all objects when the ball is down off-screen
 			InsertHighscore(Score);
 			Score = 0;
-			SpawnBall({ paddle.Position.x, 40.f });
+			ScoreIncrement = 1;
+			SpawnBall({ 0.5f * DISPLAY_WIDTH, 40.f });
+			paddle.Position = PADDLE_START;
 			SetupScene();
 			break;
 		}
@@ -85,21 +87,39 @@ void StepFrame(float DeltaTime)
 			{
 				Ball.velocity = RectangleBounce(Ball, Brick.pos, BRICK_RADII);
 				Play::DestroyGameObject(BrickIds[j]);
-				bHitBrick = true;
 				Score += ScoreIncrement;
-				//ScoreIncrement = 4;
+				ScoreIncrement++;
+				HitBricks++;
 			}
 		}
 
 		// Ball/paddle collision
 		if (IsColliding(paddle, Ball))
 		{
+			if (!bPaddleCollision && ScoreIncrement > HitBricks + 1)		// Avoids multi frame collisions && The paddle only decrements the combo if the bounce started with a combo (combo = ScoreIncrement - 1). 
+			{
+				switch (HitBricks)
+				{
+					case 0:
+						ScoreIncrement = 1;		// If no brick are hit during one bounce, the combo is lost.
+						break;
+					case 1:
+						ScoreIncrement = Max<unsigned int>(2, ScoreIncrement - 2);		// If only hitting 1 brick, the combo value the next bounce will decrement.
+						break;
+					default:
+						ScoreIncrement = Max<unsigned int>(2, ScoreIncrement - 1);		// If hitting more than one brick, the higher combo value will be kept the next bounce.
+						break;
+				}
+			}
 			bPaddleCollision = true;
+			HitBricks = 0;
 			Ball.velocity = RectangleBounce(Ball, paddle.Position, PADDLE_RADII);
 			Ball.velocity.x = BALL_START_SPEED * 0.5f * (Ball.pos.x - paddle.Position.x) / PADDLE_RADII.x;		// Overwrite the ball's x-speed depending on where on the paddle it hits
 			Ball.velocity.x += 0.5f * (paddle.Velocity.x - Ball.velocity.x);		// Movement of the paddle will also influence the horizontal speed of the ball
-			ScoreIncrement = bHitBrick ? 2 : 1;
-			bHitBrick = false;
+		}
+		else
+		{
+			bPaddleCollision = false;
 		}
 	}
 
@@ -118,12 +138,38 @@ void StepFrame(float DeltaTime)
 	// Highscores
 	for (int i = 0; i < HighscoresCount; i++)
 	{
-		std::string Text = "N" + std::to_string(i + 1) + ": " + std::to_string(HighScores[i]);
+		std::string Text = "No" + std::to_string(i + 1) + ": " + std::to_string(HighScores[i]);
 		Play::DrawDebugText({ DISPLAY_WIDTH * 0.9375f, DISPLAY_HEIGHT * (0.05f * (HighscoresCount - i)) }, Text.c_str(), Play::Colour(100, 100, 0));
 	}
 
-	// Current Highscore
-	Play::DrawDebugText({ DISPLAY_WIDTH * 0.0625f, DISPLAY_HEIGHT * 0.09375f }, std::to_string(Score).c_str(), Play::Colour(100, 100, 0));
+	// Current score
+	Play::DrawDebugText({ DISPLAY_WIDTH * 0.0625f, DISPLAY_HEIGHT * 0.09375f }, std::to_string(Score).c_str(), Play::Colour(0, 100, 0));
+	if (ScoreIncrement - 1 > 0)
+	{
+		Play::DrawDebugText({ DISPLAY_WIDTH * 0.0625f, DISPLAY_HEIGHT * 0.05f }, std::string("Combo: " + std::to_string(ScoreIncrement - 1)).c_str(), Play::Colour(100, 100, 0));
+	}
+}
+
+void LoadHighscores()
+{
+	string Line;
+	fstream File("scores", ios::in);
+	if (File.is_open())
+	{
+		for (HighscoresCount = 0; getline(File, Line); HighscoresCount++);		// Count number of highscores
+		File.clear();		// Clear error states from reaching the last line
+		File.seekg(0);
+		HighScores = new unsigned int[HighscoresCount] {};
+		for (int i = 0; getline(File, Line); i++)
+		{
+			HighScores[i] = stoul(Line);		// Incorrect file format will crash here!
+		}
+	}
+	else
+	{
+		HighscoresCount = 5;
+		HighScores = new unsigned int[HighscoresCount] {};
+	}
 }
 
 void InsertHighscore(unsigned int score)
@@ -145,28 +191,6 @@ void InsertHighscore(unsigned int score)
 		HighScores[i + 1] = HighScores[i];
 	}
 	HighScores[InsertIndex] = score;
-}
-
-void LoadHighscores()
-{
-	string Line;
-	fstream File("scores", ios::in);
-	if (File.is_open())
-	{
-		for (HighscoresCount = 0; getline(File, Line); HighscoresCount++);		// Count number of highscores
-		File.clear();		// Clear error states from reaching the last line
-		File.seekg(0);
-		HighScores = new unsigned int[HighscoresCount] {};
-		for (int i = 0; getline(File, Line); i++)
-		{
-			HighScores[i] = stoul(Line);
-		}
-	}
-	else
-	{
-		HighscoresCount = 5;
-		HighScores = new unsigned int[HighscoresCount] {};
-	}
 }
 
 void SaveHighscores()
