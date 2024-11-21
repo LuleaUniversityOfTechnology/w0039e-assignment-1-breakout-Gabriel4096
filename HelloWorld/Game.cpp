@@ -5,8 +5,10 @@
 
 Paddle paddle;
 int HighscoresCount;
-unsigned int* HighScores = new unsigned int[HighscoresCount] {};
+unsigned int* HighScores;
 unsigned int Score = 0;
+unsigned char ScoreIncrement = 1;
+bool bHitBrick = false;
 
 void SpawnBall(Play::Point2f Position)
 {
@@ -83,7 +85,9 @@ void StepFrame(float DeltaTime)
 			{
 				Ball.velocity = RectangleBounce(Ball, Brick.pos, BRICK_RADII);
 				Play::DestroyGameObject(BrickIds[j]);
-				Score++;
+				bHitBrick = true;
+				Score += ScoreIncrement;
+				//ScoreIncrement = 4;
 			}
 		}
 
@@ -94,6 +98,8 @@ void StepFrame(float DeltaTime)
 			Ball.velocity = RectangleBounce(Ball, paddle.Position, PADDLE_RADII);
 			Ball.velocity.x = BALL_START_SPEED * 0.5f * (Ball.pos.x - paddle.Position.x) / PADDLE_RADII.x;		// Overwrite the ball's x-speed depending on where on the paddle it hits
 			Ball.velocity.x += 0.5f * (paddle.Velocity.x - Ball.velocity.x);		// Movement of the paddle will also influence the horizontal speed of the ball
+			ScoreIncrement = bHitBrick ? 2 : 1;
+			bHitBrick = false;
 		}
 	}
 
@@ -153,7 +159,7 @@ void LoadHighscores()
 		HighScores = new unsigned int[HighscoresCount] {};
 		for (int i = 0; getline(File, Line); i++)
 		{
-			HighScores[i] = stoul(Line);		// Crashes if empty line!
+			HighScores[i] = stoul(Line);
 		}
 	}
 	else
