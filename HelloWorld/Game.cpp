@@ -64,7 +64,7 @@ void StepFrame(float DeltaTime)
 		{
 			// Restart
 			Play::DestroyAllGameObjects();		// Destory all objects when the ball is down off-screen
-			InsertHighscore(Score);
+			InsertHighscore();
 			Score = 0;
 			ScoreIncrement = 1;
 			SpawnBall({ 0.5f * DISPLAY_WIDTH, 40.f });
@@ -172,12 +172,12 @@ void LoadHighscores()
 	}
 }
 
-void InsertHighscore(unsigned int score)
+void InsertHighscore()
 {
 	int InsertIndex = 0;
 	for (; InsertIndex < HighscoresCount; InsertIndex++)		// Check where to insert the new score
 	{
-		if (score >= HighScores[InsertIndex])
+		if (Score >= HighScores[InsertIndex])
 		{
 			break;
 		}
@@ -190,11 +190,12 @@ void InsertHighscore(unsigned int score)
 	{
 		HighScores[i + 1] = HighScores[i];
 	}
-	HighScores[InsertIndex] = score;
+	HighScores[InsertIndex] = Score;
 }
 
 void SaveHighscores()
 {
+	InsertHighscore();
 	fstream File("scores", ios::out);
 	if (File.is_open())
 	{

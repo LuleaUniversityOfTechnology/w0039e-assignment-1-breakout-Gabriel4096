@@ -20,8 +20,7 @@ void StepFrame(float DeltaTime);
 void LoadHighscores();
 
 // Tries to insert a highscore in the right spot if possible.
-// @param score: the current score to insert.
-void InsertHighscore(unsigned int score);
+void InsertHighscore();
 
 // Saves the highscores to a file and deletes dynamic memory.
 void SaveHighscores();
