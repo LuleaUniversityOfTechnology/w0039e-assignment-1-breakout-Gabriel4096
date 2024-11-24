@@ -143,15 +143,15 @@ void StepFrame(float DeltaTime)
 	// Highscores
 	for (int i = 0; i < 5; i++)
 	{
-		std::string Text = "Nr " + std::to_string(i + 1) + ": " + std::to_string(i < ScoresCount ? Scores[i] : 0);
-		Play::DrawDebugText({ DISPLAY_WIDTH * 0.9375f, DISPLAY_HEIGHT * (0.046875f * (5 - i)) }, Text.c_str(), Play::Colour(100, 100, 0));
+		std::string Text = "No" + std::to_string(i + 1) + ": " + std::to_string(i < ScoresCount ? Scores[i] : 0);
+		Play::DrawDebugText({ DISPLAY_WIDTH * 0.921875f, DISPLAY_HEIGHT * (0.0546875f * (5 - i)) }, Text.c_str(), Play::Colour(100, 100, 0));
 	}
 
 	// Current score
-	Play::DrawDebugText({ DISPLAY_WIDTH * 0.0625f, DISPLAY_HEIGHT * 0.09375f }, std::to_string(Score).c_str(), Play::Colour(0, 100, 0));
+	Play::DrawDebugText({ DISPLAY_WIDTH * 0.078125f, DISPLAY_HEIGHT * 0.109375f }, std::to_string(Score).c_str(), Play::Colour(0, 100, 0));
 	if (ScoreIncrement - 1 > 0)
 	{
-		Play::DrawDebugText({ DISPLAY_WIDTH * 0.0625f, DISPLAY_HEIGHT * 0.046875f }, std::string("Combo: " + std::to_string(ScoreIncrement - 1)).c_str(), Play::Colour(100, 100, 0));
+		Play::DrawDebugText({ DISPLAY_WIDTH * 0.078125f, DISPLAY_HEIGHT * 0.0546875f }, std::string("Combo: " + std::to_string(ScoreIncrement - 1)).c_str(), Play::Colour(100, 100, 0));
 	}
 }
 
