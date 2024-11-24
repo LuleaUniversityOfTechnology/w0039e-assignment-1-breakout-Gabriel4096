@@ -4,8 +4,9 @@
 #include <fstream>
 
 Paddle paddle;
-int HighscoresCount;
-unsigned int* HighScores;
+unsigned int* Scores;
+unsigned int ScoresCount;
+unsigned int ScoresCapacity;
 unsigned int Score = 0;
 unsigned int ScoreIncrement = 1;
 unsigned int HitBricks = 0;		// Number of bricks hit during one paddle bounce.
@@ -50,7 +51,7 @@ void StepFrame(float DeltaTime)
 	UpdatePaddle(paddle, DeltaTime);
 
 	// Balls
-	std::vector<int> BallIds = Play::CollectGameObjectIDsByType(TYPE_BALL);		// Not const since the balls can be removed
+	const std::vector<int> BallIds = Play::CollectGameObjectIDsByType(TYPE_BALL);		// Not const since the balls can be removed
 	for (int i = 0; i < BallIds.size(); i++)
 	{
 		GameObject& Ball = Play::GetGameObject(BallIds[i]);
@@ -64,7 +65,10 @@ void StepFrame(float DeltaTime)
 		{
 			// Restart
 			Play::DestroyAllGameObjects();		// Destory all objects when the ball is down off-screen
-			InsertHighscore();
+			if (BrickIds.size() > 0)
+			{
+				InsertHighscore();
+			}
 			Score = 0;
 			ScoreIncrement = 1;
 			SpawnBall({ 0.5f * DISPLAY_WIDTH, 40.f });
@@ -86,10 +90,19 @@ void StepFrame(float DeltaTime)
 			if (Play::IsColliding(Ball, Brick))
 			{
 				Ball.velocity = RectangleBounce(Ball, Brick.pos, BRICK_RADII);
-				Play::DestroyGameObject(BrickIds[j]);
 				Score += ScoreIncrement;
-				ScoreIncrement++;
-				HitBricks++;
+				if (BrickIds.size() > 1)
+				{
+					ScoreIncrement++;
+					HitBricks++;
+				}
+				else
+				{
+					InsertHighscore();		// Record score automatically when destroying the last brick
+					ScoreIncrement = 1;		// Removes combo text
+					HitBricks = 0;		// Removes combo text next bounce
+				}
+				Play::DestroyGameObject(BrickIds[j]);
 			}
 		}
 
@@ -124,88 +137,89 @@ void StepFrame(float DeltaTime)
 	}
 
 	// Paddle (render)
-	BallIds = Play::CollectGameObjectIDsByType(TYPE_BALL);		// Recount the balls
-	if (BallIds.size() > 0)
-	{
-		paddle.Colour = bPaddleCollision ? PADDLE_COLLISION_COLOUR : PADDLE_COLOUR;		// Change colour when a ball is overlapping
-	}
-	else
-	{
-		paddle.Colour = { 75, 0, 75 };
-	}
+	paddle.Colour = bPaddleCollision ? PADDLE_COLLISION_COLOUR : PADDLE_COLOUR;		// Change colour when a ball is overlapping
 	DrawPaddle(paddle);
 
 	// Highscores
-	for (int i = 0; i < HighscoresCount; i++)
+	for (int i = 0; i < 5; i++)
 	{
-		std::string Text = "No" + std::to_string(i + 1) + ": " + std::to_string(HighScores[i]);
-		Play::DrawDebugText({ DISPLAY_WIDTH * 0.9375f, DISPLAY_HEIGHT * (0.05f * (HighscoresCount - i)) }, Text.c_str(), Play::Colour(100, 100, 0));
+		std::string Text = "Nr " + std::to_string(i + 1) + ": " + std::to_string(i < ScoresCount ? Scores[i] : 0);
+		Play::DrawDebugText({ DISPLAY_WIDTH * 0.9375f, DISPLAY_HEIGHT * (0.046875f * (5 - i)) }, Text.c_str(), Play::Colour(100, 100, 0));
 	}
 
 	// Current score
 	Play::DrawDebugText({ DISPLAY_WIDTH * 0.0625f, DISPLAY_HEIGHT * 0.09375f }, std::to_string(Score).c_str(), Play::Colour(0, 100, 0));
 	if (ScoreIncrement - 1 > 0)
 	{
-		Play::DrawDebugText({ DISPLAY_WIDTH * 0.0625f, DISPLAY_HEIGHT * 0.05f }, std::string("Combo: " + std::to_string(ScoreIncrement - 1)).c_str(), Play::Colour(100, 100, 0));
+		Play::DrawDebugText({ DISPLAY_WIDTH * 0.0625f, DISPLAY_HEIGHT * 0.046875f }, std::string("Combo: " + std::to_string(ScoreIncrement - 1)).c_str(), Play::Colour(100, 100, 0));
 	}
 }
 
 void LoadHighscores()
 {
-	string Line;
 	fstream File("scores", ios::in);
 	if (File.is_open())
 	{
-		for (HighscoresCount = 0; getline(File, Line); HighscoresCount++);		// Count number of highscores
-		File.clear();		// Clear error states from reaching the last line
+		string Line;
+		for (ScoresCount = 0; getline(File, Line); ScoresCount++);		// Count number of highscores
+		File.clear();		// Clear error states, from reaching the last line
 		File.seekg(0);
-		HighScores = new unsigned int[HighscoresCount] {};
+		ScoresCapacity = Max<unsigned int>(5, ScoresCount * 2);
+		Scores = new unsigned int[ScoresCapacity];
 		for (int i = 0; getline(File, Line); i++)
 		{
-			HighScores[i] = stoul(Line);		// Incorrect file format will crash here!
+			Scores[i] = stoul(Line);		// Incorrect file format will crash the game here!
 		}
 	}
 	else
 	{
-		HighscoresCount = 5;
-		HighScores = new unsigned int[HighscoresCount] {};
+		ScoresCount = 0;
+		ScoresCapacity = 5;
+		Scores = new unsigned int[ScoresCapacity];
 	}
 }
 
 void InsertHighscore()
 {
-	int InsertIndex = 0;
-	for (; InsertIndex < HighscoresCount; InsertIndex++)		// Check where to insert the new score
+	if (ScoresCount == ScoresCapacity)
 	{
-		if (Score >= HighScores[InsertIndex])
+		// Resize array
+		ScoresCapacity *= 2;
+		unsigned int* NewScores = new unsigned int[ScoresCapacity];
+		for (unsigned int i = 0; i < ScoresCount; i++)
 		{
-			break;
+			NewScores[i] = Scores[i];
 		}
+		delete[] Scores;
+		Scores = NewScores;
 	}
-	if (InsertIndex == HighscoresCount)		// Score didn't make it to the list
+
+	// Check where to insert the new score
+	unsigned int InsertIndex = 0;
+	for (; InsertIndex < ScoresCount && Score <= Scores[InsertIndex]; InsertIndex++);
+	
+	// Move down lower scores
+	for (unsigned int i = ScoresCount; i > InsertIndex; i--)
 	{
-		return;
+		Scores[i] = Scores[i - 1];
 	}
-	for (int i = HighscoresCount - 2; i >= InsertIndex; i--)		// Move down lower scores
-	{
-		HighScores[i + 1] = HighScores[i];
-	}
-	HighScores[InsertIndex] = Score;
+
+	Scores[InsertIndex] = Score;
+	ScoresCount++;
 }
 
 void SaveHighscores()
 {
-	InsertHighscore();
 	fstream File("scores", ios::out);
 	if (File.is_open())
 	{
-		for (int i = 0; i < HighscoresCount; i++)
+		for (int i = 0; i < ScoresCount; i++)
 		{
-			File << HighScores[i] << "\n";
+			File << Scores[i] << "\n";
 		}
 	}
 	File.close();
-	delete[] HighScores;
+	delete[] Scores;
 }
 
 Play::Vector2f RectangleBounce(const Play::GameObject& Object, Play::Vector2D RectanglePos, Play::Vector2f RectangleRadii)
